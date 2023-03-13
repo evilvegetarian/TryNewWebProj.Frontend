@@ -1,0 +1,76 @@
+﻿@page "/CreateWord"
+
+@inject WordService wordService
+@inject LanguageService languageService
+@inject TranslateService translateService
+@inject NavigationManager navigationManager
+
+<EditForm Model="word" OnValidSubmit="CreateWord" class="p-3">
+    <div class="form-group">
+        <label class="form-label">Word</label>
+        <InputText class="form-control mb-3" @oninput="UpdateInput" @bind-Value="word.WordValue">
+        </InputText>
+        <div>
+            @if (strings != null)
+            {
+                <div class="mb-3">
+                    @foreach (var item in strings)
+                    {
+                        <span @onclick="@(() => { word.WordValue = item; SelectedItem = item; })">
+                            <span class="text-primary" style="cursor: pointer;@(SelectedItem == item ? " color: lightblue;" : "")">@item</span>
+                        </span>
+                        @if (item != strings[^1])
+                        {
+                            <span>, </span>
+                        }
+                    }
+                </div>
+            }
+        </div>
+        <label class="form-label">Translation</label>
+        <InputText type="text" @bind-Value="word.Translate" class="form-control mb-3"></InputText>
+
+        <label class="form-label">Dictionaries</label>
+        <InputSelect @bind-Value="word.LanguageId" class="form-select mb-3">
+            <option>Select Dictionary</option>
+            @foreach (var item in languageList.Languages)
+            {
+                <option value="@item.Id">@item.Title</option>
+            }
+        </InputSelect>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Word</button>
+</EditForm>
+
+@code {
+    private WordVm word = new();
+    private string input = string.Empty;
+    protected LanguageListVm languageList = new();
+    private string SelectedItem { get; set; }
+    protected List<string> strings = null;
+
+
+    public async Task CreateWord()
+    {
+        await wordService.CreateWord(word);
+        navigationManager.NavigateTo($"Words/{word.LanguageId}");
+    }
+
+    protected override async void OnInitialized()
+    {
+        await LoadDictionaries();
+    }
+
+    public async Task LoadDictionaries()
+    {
+        languageList = await languageService.GetAllLanguages();
+        StateHasChanged();
+    }
+
+    private async void UpdateInput(ChangeEventArgs e)
+    {
+        strings = await translateService.GetSinonim(e.Value.ToString());
+        word.Translate = await translateService.GetTranslate(e.Value.ToString());
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,24 @@
+﻿@page "/page/{wordId}"
+@using TryNewWebProj.Frontend.Services;
+
+@inject SettingsWordService settingsWordService
+
+<p>@procent %</p>
+
+@code {
+
+    [Parameter]
+    public Guid wordId { get; set; }
+
+    public int procent;
+    protected override async Task OnInitializedAsync()
+    {
+        await GetProcentLearnWord();
+    }
+
+    public async Task GetProcentLearnWord()
+    {
+        var sett = await settingsWordService.GetSettingsByWordId(wordId);
+        procent = sett.ProcentLearning.Value;
+    }
+}

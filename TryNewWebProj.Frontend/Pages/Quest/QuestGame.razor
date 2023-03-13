@@ -1,0 +1,91 @@
+﻿@page "/QuestGame/{id}/{IsDisabled:bool}"
+@inject WordService wordService 
+@inject SettingsWordService settingsWordService
+
+<div class="card">
+    <div class="card-header">
+        <h3>Word Game</h3>
+    </div>
+    <div class="card-body">
+        <div class="form-group">
+            <label for="inputTranslation" class="form-label">Enter Translation:</label>
+            <h3 class="form" >@word.WordValue</h3>
+            <InputText type="text" class="form-control" id="inputTranslation" @bind-Value="trans" disabled="@IsDisabled" @oninput="UpdateInput" />
+            @if (IsDisabled)
+            {
+                <span class="text-success">Correct!<i class="bi bi-check-circle-fill"></i></span>
+            }
+        </div>
+
+        <button class="btn btn-primary" @onclick="() => { GetHint(); getHintCount++; }">Get Hint</button>
+    </div>
+</div>
+
+
+@code {
+    [Parameter] public Guid id { get; set; }
+    [Parameter] public bool IsDisabled { get; set; }
+    private WordVm word = new ();
+    protected string trans = null;
+
+    protected int getHintCount=0;
+    protected override async Task OnInitializedAsync()
+    {
+        await GetWord();
+        StateHasChanged();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await GetWord();
+    }
+
+    protected async Task GetWord()
+    {
+        word = await wordService.GetWordById(id);
+        trans = "";
+        StateHasChanged();
+    }
+
+    protected async void UpdateInput(ChangeEventArgs e)
+    {
+        var trans=e.Value.ToString();
+        if (trans.ToLower().ToString()==word.Translate.ToLower().ToString())
+        {
+            IsDisabled = true;
+            if (getHintCount == 0)
+                await settingsWordService.CompleteQuizByWordId(new Sett { WordId = word.Id.Value, Learn = true });
+            else
+                await settingsWordService.CompleteQuizByWordId(new Sett { WordId = word.Id.Value, Learn = false });
+
+        }
+        StateHasChanged();
+    }
+
+    public async Task GetHint()
+    {
+        var hint = word.Translate;
+
+        if (trans == null)
+        {
+            trans += hint[0];
+            return;
+        }
+        else if (trans.Contains(hint))
+        {
+            trans = trans.Substring(0, trans.IndexOf(hint) + hint.Length);
+            return;
+        }
+        int minLength = Math.Min(hint.Length, trans.Length);
+        for (int i = 0; i < minLength; i++)
+        {
+            if (hint[i] != trans[i])
+            {
+                trans = trans.Remove(i, (trans.Length - i));
+                trans += hint[i];
+                break;
+            }
+        }
+        trans+=hint[trans.Length];
+    }
+}

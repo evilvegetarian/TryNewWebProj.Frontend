@@ -1,0 +1,35 @@
+﻿@page "/Quest/{words}"
+
+<QuestGame id="words1[i]" IsDisabled=isdemp></QuestGame>
+<button class="btn btn-secondary" @onclick="()=>Add()">Next</button>
+
+
+@code {
+    [Parameter] public string words { get; set; }
+    protected List<Guid> words1 = new();
+    protected WordVm word{ get; set; }
+    protected int i = 0;
+    public bool isdemp =false;
+
+
+    public async void Add()
+    {
+        if (i<words1.Count-1)
+        {
+            i++;
+            isdemp = false;
+        }
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Deserelaze();
+    }
+
+    public async Task Deserelaze()
+    {
+        words1 = JsonSerializer.Deserialize<List<Guid>>(words);
+        StateHasChanged();
+    }
+}

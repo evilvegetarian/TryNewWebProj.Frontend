@@ -1,0 +1,88 @@
+﻿@page "/Words/{langId}"
+@using System.Text.Json;
+@inject WordService wordService
+@inject LanguageService languageService
+@inject NavigationManager NavigationManager
+
+<a href="CreateWord" class="btn btn-primary">Create word</a>
+<h3 class="text-center">All Words by </h3>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Word Value</th>
+                <th>Translation</th>
+                <th>Actions</th>
+                <th>Procent Learning</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in words.Words)
+            {
+                <tr>
+                    <td>
+                        <input type="checkbox" @onclick="() => OnCheckboxClick(item.Id.Value)" />
+                    </td>
+                    <td>
+                        <a href="word/@item.Id">@item.WordValue</a>
+                    </td>
+                    <td>
+                        @item.Translate
+                    </td>
+                    <td>
+                        <a href="#" class="btn btn-primary">Edit</a>
+                        <button class="btn btn-danger" @onclick="()=> (DeleteWord(item.Id.Value))">Delete</button>
+                    </td>
+                    <td>
+                        <GetProcentComponent wordId="@item.Id.Value"></GetProcentComponent>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<button class="btn btn-primary" @onclick="HandleSelection">Collect Selected Words</button>
+
+
+@code {
+    [Parameter] 
+    public string langId { get; set; }
+
+    protected WordListVm words = new ();
+    protected List<Guid> selectedWordIds = new();
+
+    protected async override Task OnInitializedAsync()
+    {
+        await LoadWords();
+    }
+
+    public async Task LoadWords()
+    {
+        words = await wordService.GetAllWords(Guid.Parse(langId));
+
+        StateHasChanged();
+    }
+
+    public async Task DeleteWord(Guid id)
+    {
+        await wordService.DeleteWord(id);
+        await LoadWords();
+    }
+
+    public void HandleSelection()
+    {
+        var words1 = JsonSerializer.Serialize(selectedWordIds);
+        NavigationManager.NavigateTo($"/Quest/{words1}");
+    }
+    protected void OnCheckboxClick(Guid id)
+    {
+        if (selectedWordIds.Contains(id))
+            selectedWordIds.Remove(id);
+        else
+            selectedWordIds.Add(id);
+    }
+
+}
+

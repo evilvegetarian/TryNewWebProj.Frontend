@@ -1,0 +1,20 @@
+﻿@page "/CreateLanguage"
+@inject LanguageService languageService
+
+<h3>Create Language</h3>
+
+<EditForm Model="languageVm" OnValidSubmit="CreateLanguage">
+    <div class="form-group">
+        <InputText @bind-Value="languageVm.Title" class="form-control"/>
+    </div>
+    <button type="submit" class="btn btn-primary">Add</button>
+</EditForm>
+
+@code {
+    private LanguageVm languageVm = new LanguageVm();
+
+    public async Task CreateLanguage()
+    {
+        await languageService.CreateLanguage(languageVm);
+    }
+}

@@ -1,0 +1,42 @@
+﻿@page "/Language"
+@inject LanguageService languageService
+<h3>Language</h3>
+
+
+@if (languages.Languages.Count!=0)
+{
+    @foreach (var item in languages.Languages)
+    {
+        <tr>
+            <td>
+                <a href="Words/@item.Id">@item.Title </a>
+            </td>
+            <td>
+                <a class="btn btn-primary">Edit</a>
+                <button class="btn btn-danger" @onclick="()=> (DeleteLanguage(item.Id.Value))">Delete</button>
+            </td>
+        </tr>
+    }
+}
+
+
+@code {
+    protected LanguageListVm languages = new LanguageListVm();
+
+    protected override async void OnInitialized()
+    {
+        await LoadLanguage();
+    }
+
+    public async Task LoadLanguage()
+    {
+        languages = await languageService.GetAllLanguages();
+        StateHasChanged();
+    }
+
+    public async Task DeleteLanguage(Guid id)
+    {
+        await languageService.DeleteLanguage(id);
+        await LoadLanguage();
+    }
+}

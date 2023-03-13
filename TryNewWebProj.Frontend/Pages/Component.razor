@@ -1,0 +1,14 @@
+﻿@page "/token"
+@inject HttpClient httpClient
+
+
+<h3>Component</h3>
+
+@code {
+    protected string str = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        str = await httpClient.GetStringAsync("https://localhost:7203/api/1.0/Language");
+    }
+}
